@@ -14,3 +14,15 @@ do
 Console.WriteLine(choice);
 
 
+
+
+
+/* TODO List:
+ * 
+ * Fix httpclient etc..
+ * Recursive search through site
+ * Only read pages once, save visited urls
+ * Do it in parallell
+ * Save everything
+ * 
+ */
