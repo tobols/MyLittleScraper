@@ -1,17 +1,26 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MyLittleScraper;
 
 
-string choice = null;
 
-do
-{
-    Console.Write("Url: ");
-    choice = Console.ReadLine();
-} while (choice == null);
+// DI to get some structure
+var builder = new HostBuilder()
+    .ConfigureServices((context, services) =>
+    {
+        services.AddHttpClient("scrapeClient");
+        services.AddSingleton<Scraper>();
+        services.AddSingleton<Saver>();
+    });
+
+var host = builder.Build();
+
+var scraper = host.Services.GetRequiredService<Scraper>();
+await scraper.Scrape();
 
 
-Console.WriteLine(choice);
+
+
 
 
 
@@ -26,3 +35,6 @@ Console.WriteLine(choice);
  * Save everything
  * 
  */
+
+
+
