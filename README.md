@@ -4,7 +4,7 @@ A simple scraper to download https://books.toscrape.com locally
 
 ## Configuration
 
-appsetting.json has to possible configurations:
+appsetting.json has two possible configurations:
 
 1. ScrapeUrl - Url of the website to scrape
 2. BaseSaveDir - A local folder where to download and save the scraped site
