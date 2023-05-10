@@ -109,6 +109,9 @@ public class Saver
 
     public void DeleteAll()
     {
+        if (!Directory.Exists(_baseFolder))
+            return;
+
         DirectoryInfo dir = new DirectoryInfo(_baseFolder);
 
         foreach (FileInfo file in dir.EnumerateFiles())
