@@ -6,30 +6,18 @@ namespace MyLittleScraper;
 public class Saver
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly Parser _parser;
     private readonly string _baseFolder;
 
 
-    public Saver(IHttpClientFactory httpClientFactory, Parser parser, IConfiguration config)
+    public Saver(IHttpClientFactory httpClientFactory, IConfiguration config)
     {
         _httpClientFactory = httpClientFactory;
-        _parser = parser;
         _baseFolder = config["BaseSaveDir"]!;
     }
 
 
     public async Task Save(string htmlString, Uri uri)
     {
-        var images = _parser.FindImages(htmlString, uri);
-        var jsFiles = _parser.FindFiles(htmlString, uri, Parser.FileType.JavaScript);
-        var cssFiles = _parser.FindFiles(htmlString, uri, Parser.FileType.CSS);
-
-        var tasks = images.Select(SaveImage).ToList();
-        tasks.AddRange(jsFiles.Select(DownloadAndSaveFile));
-        tasks.AddRange(cssFiles.Select(DownloadAndSaveFile));
-
-        await Task.WhenAll(tasks);
-
         if (uri.LocalPath.EndsWith("/"))
             await SaveFile(htmlString, uri, "index.html");
         else
@@ -37,25 +25,19 @@ public class Saver
     }
 
 
-    private async Task SaveImage(string url)
+    public async Task SaveImage(string url)
     {
         var uri = new Uri(url);
         var filePath = _baseFolder + uri.LocalPath;
-        if (File.Exists(filePath))
-            return;
         
         CreateDir(uri.LocalPath);
 
         var client = _httpClientFactory.CreateClient("scrapeClient");
         var imageBytes = await client.GetByteArrayAsync(url);
 
-        if (File.Exists(filePath))
-            return;
-
         try
         {
-            // TODO: Have to do something about these IO conflicts
-            File.WriteAllBytes(filePath, imageBytes);
+            await File.WriteAllBytesAsync(filePath, imageBytes);
         }
         catch (Exception ex)
         {
@@ -66,7 +48,7 @@ public class Saver
     }
 
 
-    private async Task DownloadAndSaveFile(string url)
+    public async Task DownloadAndSaveFile(string url)
     {
         var client = _httpClientFactory.CreateClient("scrapeClient");
         var response = await client.GetAsync(url);
@@ -82,8 +64,6 @@ public class Saver
     private async Task SaveFile(string content, Uri uri, string fileName = "")
     {
         var filePath = _baseFolder + uri.LocalPath + fileName;
-        if (File.Exists(filePath))
-            return;
 
         CreateDir(uri.LocalPath);
         try

@@ -14,7 +14,7 @@ namespace MyLittleScraper
         {
             var regex = GetRegex(fileType);
             var matches = regex.Matches(htmlString);
-            var files = matches.Select(m => m.Groups[2].Value);
+            var files = matches.Select(m => m.Groups[2].Value.Replace("../", ""));
             return files.Select(im => $"{uri.Scheme}://{uri.Host}/{im}");
         }
 
@@ -22,7 +22,7 @@ namespace MyLittleScraper
         public IEnumerable<string> FindImages(string htmlString, Uri uri)
         {
             var matches = imageRegex.Matches(htmlString);
-            var images = matches.Select(m => m.Groups[2].Value);
+            var images = matches.Select(m => m.Groups[2].Value.Replace("../", ""));
             return images.Select(im => $"{uri.Scheme}://{uri.Host}/{im}");
         }
 
@@ -61,13 +61,17 @@ namespace MyLittleScraper
             fileType switch
             {
                 FileType.JavaScript => jsRegex,
-                _ => cssRegex
+                FileType.CSS => cssRegex,
+                FileType.Image => imageRegex,
+                _ => throw new Exception("No regex for this filetype")
             };
 
         public enum FileType
         {
             JavaScript,
-            CSS
+            CSS,
+            Image,
+            Html
         }
     }
 }
