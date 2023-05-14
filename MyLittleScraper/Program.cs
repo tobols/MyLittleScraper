@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyLittleScraper;
+using System.Diagnostics;
 using System.Net;
 
 
@@ -27,4 +28,20 @@ var builder = new HostBuilder()
 var host = builder.Build();
 
 var scraper = host.Services.GetRequiredService<Scraper>();
-await scraper.Scrape();
+
+Stopwatch sw;
+
+for (var i = 0; i < 10; i++)
+{
+    var useParallel = i % 2 == 0;
+
+    Console.WriteLine($"Scraping with {(useParallel ? "Parallel.ForEachAsync": "Task.WhenAll")}");
+
+    sw = Stopwatch.StartNew();
+    await scraper.Scrape(useParallel);
+    sw.Stop();
+    Console.WriteLine($"Elapsed time: {sw.ElapsedMilliseconds}\n\n");
+}
+
+
+

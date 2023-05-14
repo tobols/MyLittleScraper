@@ -24,7 +24,7 @@ public class Scraper
     }
 
 
-    public async Task Scrape()
+    public async Task Scrape(bool useParallel = false)
     {
         Console.WriteLine("Deleting any previous scrapes");
 
@@ -38,7 +38,10 @@ public class Scraper
 
         Console.WriteLine($"Downloading {_foundResources.Count()} resources...");
 
-        await DownloadResources();
+        if (useParallel)
+            await DownloadResourcesParallelAsync();
+        else
+            await DownloadResources();
 
         Console.WriteLine("Resources downloaded");
 
@@ -108,6 +111,26 @@ public class Scraper
                     return _saver.DownloadAndSaveFile(kvp.Key);
             });
             await Task.WhenAll(saveTasks);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Unhandled {ex.GetType().Name}: {ex.Message}");
+            Console.WriteLine($"Occurred while Downloading Resources");
+        }
+    }
+
+
+    private async Task DownloadResourcesParallelAsync()
+    {
+        try
+        {
+            await Parallel.ForEachAsync(_foundResources, new ParallelOptions { MaxDegreeOfParallelism = 30 }, async (kvp, ct) =>
+            {
+                if (kvp.Value == Parser.FileType.Image)
+                    await _saver.SaveImage(kvp.Key);
+                else
+                    await _saver.DownloadAndSaveFile(kvp.Key);
+            });
         }
         catch (Exception ex)
         {
